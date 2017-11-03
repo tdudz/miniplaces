@@ -9,6 +9,8 @@ from DataLoader import *
 parser = argparse.ArgumentParser(description='Alexnet')
 parser.add_argument('--restore', help='whether to restore model or not', action='store_true', default=False)
 
+args = parser.parse_args()
+
 # Dataset Parameters
 batch_size = 256
 load_size = 256
