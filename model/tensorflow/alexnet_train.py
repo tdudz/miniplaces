@@ -1,7 +1,14 @@
 import os, datetime
+import argparse
 import numpy as np
 import tensorflow as tf
 from DataLoader import *
+
+# Command Line Argument Parsing
+parser = argparse.ArgumentParser(description='Alexnet')
+parser.add_argument('--restore', help='whether to restore model or not', action='store_true', default=False)
+
+args = parser.parse_args()
 
 # Dataset Parameters
 batch_size = 200
@@ -14,10 +21,11 @@ data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 learning_rate = 0.001
 dropout = 0.5 # Dropout, probability to keep units
 training_iters = 100000
-step_display = 50
-step_save = 10000
-path_save = 'alexnet'
-start_from = ''
+step_display = 2
+step_save = 1
+path_save = '/data/saved'
+path_save_model = '/data/saved/alexnet'
+restore_model = args.restore
 
 def alexnet(x, keep_dropout):
     weights = {
@@ -115,12 +123,15 @@ x = tf.placeholder(tf.float32, [None, fine_size, fine_size, c])
 y = tf.placeholder(tf.int64, None)
 keep_dropout = tf.placeholder(tf.float32)
 
+# global step
+global_step = tf.Variable(0, name='global_step', trainable=False)
+
 # Construct model
 logits = alexnet(x, keep_dropout)
 
 # Define loss and optimizer
 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
-train_optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss)
+train_optimizer = tf.train.AdamOptimizer(learning_rate=learning_rate).minimize(loss, global_step=global_step)
 
 # Evaluate model
 accuracy1 = tf.reduce_mean(tf.cast(tf.nn.in_top_k(logits, y, 1), tf.float32))
@@ -138,12 +149,14 @@ saver = tf.train.Saver()
 # Launch the graph
 with tf.Session() as sess:
     # Initialization
-    if len(start_from)>1:
-        saver.restore(sess, start_from)
+    if restore_model:
+        saver.restore(sess, tf.train.latest_checkpoint(path_save))
+        step = sess.run(global_step)
+        print "Restored model from file at step", step
+
     else:
         sess.run(init)
-    
-    step = 0
+        step = 0
 
     while step < training_iters:
         # Load a batch of training data
@@ -174,7 +187,7 @@ with tf.Session() as sess:
         
         # Save model
         if step % step_save == 0:
-            saver.save(sess, path_save, global_step=step)
+            saver.save(sess, path_save_model, global_step=step)
             print("Model saved at Iter %d !" %(step))
         
     print("Optimization Finished!")

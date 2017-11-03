@@ -1,8 +1,13 @@
 import os, datetime
 import numpy as np
 import tensorflow as tf
+import argparse
 from tensorflow.contrib.layers.python.layers import batch_norm
 from DataLoader import *
+
+# Command Line Argument Parsing
+parser = argparse.ArgumentParser(description='Alexnet')
+parser.add_argument('--restore', help='whether to restore model or not', action='store_true', default=False)
 
 # Dataset Parameters
 batch_size = 256
@@ -17,16 +22,17 @@ dropout = 0.5 # Dropout, probability to keep units
 training_iters = 50000
 step_display = 50
 step_save = 10000
-path_save = 'alexnet_bn'
-start_from = ''
+path_save = '/data/saved'
+path_save_model = '/data/saved/alexnet_bn'
+restore_model = args.restore
 
 def batch_norm_layer(x, train_phase, scope_bn):
     return batch_norm(x, decay=0.9, center=True, scale=True,
-    updates_collections=None,
-    is_training=train_phase,
-    reuse=None,
-    trainable=True,
-    scope=scope_bn)
+                      updates_collections=None,
+                      is_training=train_phase,
+                      reuse=None,
+                      trainable=True,
+                      scope=scope_bn)
     
 def alexnet(x, keep_dropout, train_phase):
     weights = {
@@ -122,6 +128,9 @@ y = tf.placeholder(tf.int64, None)
 keep_dropout = tf.placeholder(tf.float32)
 train_phase = tf.placeholder(tf.bool)
 
+# global step
+global_step = tf.Variable(0, name='global_step', trainable=False)
+
 # Construct model
 logits = alexnet(x, keep_dropout, train_phase)
 
@@ -140,17 +149,20 @@ init = tf.global_variables_initializer()
 saver = tf.train.Saver()
 
 # define summary writer
-#writer = tf.train.SummaryWriter('.', graph=tf.get_default_graph())
+# writer = tf.summary.FileWriter('./logs', graph=tf.get_default_graph())
 
 # Launch the graph
 with tf.Session() as sess:
     # Initialization
-    if len(start_from)>1:
-        saver.restore(sess, start_from)
+    if restore_model:
+        saver.restore(sess, tf.train.latest_checkpoint(path_save))
+        step = sess.run(global_step)
+        print "Restored model from file at step", step
+
     else:
         sess.run(init)
-    
-    step = 0
+        step = 0
+        print "Initialized new model"
 
     while step < training_iters:
         # Load a batch of training data
@@ -181,11 +193,10 @@ with tf.Session() as sess:
         
         # Save model
         if step % step_save == 0:
-            saver.save(sess, path_save, global_step=step)
+            saver.save(sess, path_save_model, global_step=step)
             print("Model saved at Iter %d !" %(step))
         
     print("Optimization Finished!")
-
 
     # Evaluate on the whole validation set
     print('Evaluation on the whole validation set...')
