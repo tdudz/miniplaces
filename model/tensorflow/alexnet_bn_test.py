@@ -140,6 +140,7 @@ with tf.Session() as sess:
             preds = ""
             for prediction in out[0][1][0]:
                 preds += str(prediction) + " "
+            preds = preds[:-1]
             f.write(filename + " " + preds + "\n")
             im +=1
             if im % 250 == 0:
