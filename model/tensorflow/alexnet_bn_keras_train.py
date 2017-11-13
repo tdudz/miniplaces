@@ -3,7 +3,8 @@ import argparse
 import tensorflow as tf
 from keras import backend as K
 from keras.optimizers import Adam
-from alexnet import alexnet_bn_keras
+from keras.utils import multi_gpu_model
+from alexnet import alexnet_keras
 from DataLoader import *
 
 # command line argument parsing
@@ -12,11 +13,15 @@ parser.add_argument('--gpus', nargs='?', help='number of GPUs to train with', ty
 args = parser.parse_args()
 
 # Dataset Parameters
-batch_size = 200
+batch_size = 256
 load_size = 256
 fine_size = 224
 c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
+
+# Keras Parameters
+train_size = 100000
+val_size = 10000
 
 # Training Parameters
 learning_rate = 0.001
@@ -52,33 +57,26 @@ loader_val = DataLoaderDisk(**opt_data_val)
 #loader_train = DataLoaderH5(**opt_data_train)
 #loader_val = DataLoaderH5(**opt_data_val)
 
-with tf.device('/cpu:0'):
-    model = alexnet_bn_keras((fine_size, fine_size, c))
+def sparse_top_5_categorical_accuracy(y_true, y_pred, k=5):
+    return K.mean(K.in_top_k(y_pred, K.cast(K.max(y_true, axis=-1), 'int32'), k), axis=-1)
 
-#parallel_model = multi_gpu_model(model, gpus=gpus)
+def sparse_top_1_categorical_accuracy(y_true, y_pred, k=1):
+    return K.mean(K.in_top_k(y_pred, K.cast(K.max(y_true, axis=-1), 'int32'), k), axis=-1)
+
+with tf.device('/cpu:0'):
+    model = alexnet_keras((fine_size, fine_size, c))
+
+model = multi_gpu_model(model, gpus=gpus)
 
 opt = Adam(lr=learning_rate)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=opt)
+model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy])
 
-step = 0
 
-while step < training_iters:
-    images_batch, labels_batch = loader_train.next_batch(batch_size)
-
-    if step % step_display == 0:
-        print('[%s]:' %(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
-
-        # calculate batch loss on training set
-        loss = model.evaluate(images_batch, labels_batch, batch_size=batch_size)
-        print("-Iter " + str(step) + ", Training Loss= " + "{:.6f}".format(loss))
-
-        images_batch_val, labels_batch_val = loader_val.next_batch(batch_size)    
-        loss = model.evaluate(images_batch_val, labels_batch_val, batch_size=batch_size)
-        print("-Iter " + str(step) + ", Validation Loss= " + "{:.6f}".format(loss))
-
-    model.train_on_batch(images_batch, labels_batch)
-
-    step += 1
+print "LOADING TEST AND VAL SET"
+images_batch, labels_batch = loader_train.next_batch(train_size)
+images_batch_val, labels_batch_val = loader_val.next_batch(val_size) 
+print "FITTING MODEL"
+model.fit(images_batch, labels_batch, batch_size=256, epochs=128, verbose=1, validation_data=(images_batch_val, labels_batch_val))
 
 print("Optimization Finished!")
 
@@ -89,6 +87,3 @@ print("Optimization Finished!")
 # for i in range(num_batch):
 #     images_batch, labels_batch = loader_val.next_batch(batch_size) 
 #     loss = model.evaluate(images_batch, labels_batch, batch_size=batch_size)
-
-
-

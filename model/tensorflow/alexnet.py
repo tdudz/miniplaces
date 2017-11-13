@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 from keras.models import Model
+from keras.models import Sequential
 from keras.layers import Flatten, Dense, Dropout, Activation, Input, BatchNormalization, Conv2D, MaxPooling2D
 import numpy as np
 
@@ -158,7 +159,7 @@ def alexnet_bn_keras(input_shape, weights_path=None, keep_dropout=0.5):
     bn3 = BatchNormalization()(conv3)
     act3 = Activation('relu')(bn3)
 
-    conv4 = Conv2D(384, (3, 3), strides=(1, 1))(act3)
+    conv4 = Conv2D(256, (3, 3), strides=(1, 1))(act3)
     bn4 = BatchNormalization()(conv4)
     act4 = Activation('relu')(bn4)
 
@@ -180,13 +181,35 @@ def alexnet_bn_keras(input_shape, weights_path=None, keep_dropout=0.5):
 
     outputs = Dense(100)(drop7)
 
-    model = Model(input=inputs, output=outputs)
+    model = Model(outputs=outputs, inputs=inputs)
 
     if weights_path:
         model.load_weights(weights_path)
 
     return model
 
+def alexnet_keras(input_shape, weights_path=None, keep_dropout=0.5):
+    model = Sequential()
+    model.add(Conv2D(96, (11, 11), strides=(4, 4), activation='relu', padding='same', input_shape=input_shape))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
 
+    model.add(Conv2D(256, (5, 5), strides=(1, 1), activation='relu', padding='same'))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
 
+    model.add(Conv2D(384, (3, 3), strides=(1, 1), activation='relu'))
 
+    model.add(Conv2D(384, (3, 3), strides=(1, 1), activation='relu'))
+
+    model.add(Conv2D(256, (3, 3), strides=(1, 1), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+
+    model.add(Flatten())
+    model.add(Dense(units=4096, activation='relu'))
+    model.add(Dropout(keep_dropout))
+
+    model.add(Dense(units=4096, activation='relu'))
+    model.add(Dropout(keep_dropout))
+
+    model.add(Dense(units=100))
+
+    return model
