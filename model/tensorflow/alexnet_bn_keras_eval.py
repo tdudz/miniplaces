@@ -9,9 +9,9 @@ from DataLoader import *
 
 # command line argument parsing
 parser = argparse.ArgumentParser(description='Alexnet Batch Normalization')
-# parser.add_argument('--model', nargs=1, help='directory to saved weights')
+parser.add_argument('--model', nargs=1, help='directory to saved weights')
 args = parser.parse_args()
-# restore_dir = args.restore
+weights = args.model
 
 # Dataset Parameters
 batch_size = 256
@@ -31,14 +31,13 @@ data_test = {
     'randomize': False
     }
 
+# TODO: move to H5 loading
 loader_test = DataLoaderTestDisk(**data_test)
-
-# function for getting top k outputs using tf backend (takes in logits)
-def top_k(logits, k=5):
-    return K.top_k(logits, k=k)
 
 # construct model
 model = alexnet_bn_keras((fine_size, fine_size, c)) 
+model.load_weights(weights)
+print "Loaded weights from file"
 
 images = loader_test.get_test_images()
 paths = loader_test.get_file_list()

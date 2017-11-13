@@ -64,10 +64,12 @@ loader_val = DataLoaderH5(**opt_data_val)
 def sparse_categorical_crossentropy_with_logits(y_true, y_pred):
     return K.sparse_categorical_crossentropy(y_true, y_pred, from_logits=True)
 
-def sparse_top_5_categorical_accuracy(y_true, y_pred, k=5):
+def top_5_acc(y_true, y_pred, k=5):
+    # sparse_top_5_categorical_accuracy
     return K.mean(K.in_top_k(y_pred, K.cast(K.max(y_true, axis=-1), 'int32'), k), axis=-1)
 
-def sparse_top_1_categorical_accuracy(y_true, y_pred, k=1):
+def top_1_acc(y_true, y_pred, k=1):
+    # sparse_top_1_categorical_accuracy
     return K.mean(K.in_top_k(y_pred, K.cast(K.max(y_true, axis=-1), 'int32'), k), axis=-1)
 
 print "Initializing model on CPU"
@@ -79,13 +81,12 @@ model = multi_gpu_model(model, gpus=gpus)
 checkpointer = ModelCheckpoint(filepath='/data/keras_saved/weights.{epoch:02d}-{val_loss:.2f}.hdf5', verbose=1, save_weights_only=True)
 
 opt = Adam(lr=learning_rate)
-# model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy])
-model.compile(loss=sparse_categorical_crossentropy_with_logits, optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy])
+model.compile(loss=sparse_categorical_crossentropy_with_logits, optimizer=opt, metrics=[top_5_acc, top_1_acc])
 
-print "LOADING TRAIN AND VAL SET"
+print "Loading training and validation data..."
 images_batch, labels_batch = loader_train.next_batch(train_size)
 images_batch_val, labels_batch_val = loader_val.next_batch(val_size) 
-print "FITTING MODEL"
+print "Fitting model..."
 model.fit(images_batch, labels_batch, batch_size=256, epochs=128, verbose=1, validation_data=(images_batch_val, labels_batch_val), callbacks=[checkpointer])
 
 print("Optimization Finished!")
