@@ -34,7 +34,7 @@ gpus = args.gpus
 
 # Construct dataloader
 opt_data_train = {
-    #'data_h5': 'miniplaces_256_train.h5',
+    'data_h5': 'miniplaces_256_train.h5',
     'data_root': '../../data/images/',
     'data_list': '../../data/train.txt',
     'load_size': load_size,
@@ -44,7 +44,7 @@ opt_data_train = {
     }
 
 opt_data_val = {
-    #'data_h5': 'miniplaces_256_val.h5',
+    'data_h5': 'miniplaces_256_val.h5',
     'data_root': '../../data/images/',
     'data_list': '../../data/val.txt',
     'load_size': load_size,
@@ -53,10 +53,14 @@ opt_data_val = {
     'randomize': False
     }
 
-loader_train = DataLoaderDisk(**opt_data_train)
-loader_val = DataLoaderDisk(**opt_data_val)
-#loader_train = DataLoaderH5(**opt_data_train)
-#loader_val = DataLoaderH5(**opt_data_val)
+# loader_train = DataLoaderDisk(**opt_data_train)
+# loader_val = DataLoaderDisk(**opt_data_val)
+loader_train = DataLoaderH5(**opt_data_train)
+loader_val = DataLoaderH5(**opt_data_val)
+
+# Loss and accuracy functions
+def sparse_categorical_crossentropy_with_logits(y_true, y_pred):
+    return K.sparse_categorical_crossentropy(y_true, y_pred, from_logits=True)
 
 def sparse_top_5_categorical_accuracy(y_true, y_pred, k=5):
     return K.mean(K.in_top_k(y_pred, K.cast(K.max(y_true, axis=-1), 'int32'), k), axis=-1)
@@ -72,7 +76,8 @@ model = multi_gpu_model(model, gpus=gpus)
 checkpointer = ModelCheckpoint(filepath='/data/keras_saved/weights.{epoch:02d}-{val_loss:.2f}.hdf5', verbose=1, save_weights_only=True)
 
 opt = Adam(lr=learning_rate)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy], callbacks=[checkpointer])
+# model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy], callbacks=[checkpointer])
+model.compile(loss=sparse_categorical_crossentropy_with_logits, optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy], callbacks=[checkpointer])
 
 print "LOADING TEST AND VAL SET"
 images_batch, labels_batch = loader_train.next_batch(train_size)
@@ -83,9 +88,7 @@ model.fit(images_batch, labels_batch, batch_size=256, epochs=128, verbose=1, val
 print("Optimization Finished!")
 
 # Evaluate on the whole validation set
-# print('Evaluation on the whole validation set...')
-# num_batch = loader_val.size() // batch_size
-# loader_val.reset()
-# for i in range(num_batch):
-#     images_batch, labels_batch = loader_val.next_batch(batch_size) 
-#     loss = model.evaluate(images_batch, labels_batch, batch_size=batch_size)
+print('Evaluation on the whole validation set...')
+loader_val.reset()
+loss = model.evaluate(images_batch_val, labels_batch_val, batch_size=val_size)
+print "FINAL VALIDATION LOSS, TOP5, TOP1: " + loss
