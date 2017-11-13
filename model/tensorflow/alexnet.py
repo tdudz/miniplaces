@@ -142,52 +142,6 @@ def batch_norm_layer(x, train_phase, scope_bn):
                       trainable=True,
                       scope=scope_bn)
 
-# def alexnet_bn_keras(input_shape, weights_path=None, keep_dropout=0.5):
-#     inputs = Input(shape=input_shape)
-
-#     conv1 = Conv2D(96, (11, 11), strides=(4, 4), padding='same')(inputs)
-#     bn1 = BatchNormalization()(conv1)
-#     act1 = Activation('relu')(bn1)
-#     pool1 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(act1)
-
-#     conv2 = Conv2D(256, (5, 5), strides=(1, 1))(pool1)
-#     bn2 = BatchNormalization()(conv2)
-#     act2 = Activation('relu')(bn2)
-#     pool2 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(act2)
-
-#     conv3 = Conv2D(384, (3, 3), strides=(1, 1))(inputs)
-#     bn3 = BatchNormalization()(conv3)
-#     act3 = Activation('relu')(bn3)
-
-#     conv4 = Conv2D(256, (3, 3), strides=(1, 1))(act3)
-#     bn4 = BatchNormalization()(conv4)
-#     act4 = Activation('relu')(bn4)
-
-#     conv5 = Conv2D(256, (3, 3), strides=(1, 1))(act4)
-#     bn5 = BatchNormalization()(conv5)
-#     act5 = Activation('relu')(bn5)
-#     pool5 = MaxPooling2D(pool_size=(3, 3), strides=(2, 2))(act5)
-
-#     flat6 = Flatten()(pool5)
-#     fc6 = Dense(4096)(flat6)
-#     bn6 = BatchNormalization()(fc6)
-#     act6 = Activation('relu')(bn6)
-#     drop6 = Dropout(keep_dropout)(act6)
-
-#     fc7 = Dense(4096)(drop6)
-#     bn7 = BatchNormalization()(fc7)
-#     act7 = Activation('relu')(bn7)
-#     drop7 = Dropout(keep_dropout)(act7)
-
-#     outputs = Dense(100)(drop7)
-
-#     model = Model(outputs=outputs, inputs=inputs)
-
-#     if weights_path:
-#         model.load_weights(weights_path)
-
-#     return model
-
 def alexnet_keras(input_shape, weights_path=None, keep_dropout=0.5):
     model = Sequential()
     model.add(Conv2D(96, (11, 11), strides=(4, 4), activation='relu', padding='same', input_shape=input_shape))
@@ -213,7 +167,6 @@ def alexnet_keras(input_shape, weights_path=None, keep_dropout=0.5):
     model.add(Dense(units=100))
 
     return model
-
 
 def alexnet_bn_keras(input_shape,weights_path=None,keep_dropout=0.5):
     model = Sequential()
@@ -262,9 +215,3 @@ def alexnet_bn_keras(input_shape,weights_path=None,keep_dropout=0.5):
     model.add(Dense(units=100))
 
     return model
-
-
-
-
-
-

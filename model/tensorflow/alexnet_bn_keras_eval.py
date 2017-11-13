@@ -47,32 +47,15 @@ im = 0
 with open('./eval.txt', 'w') as f:
     for image, filename in zip(images, paths):
         image = np.reshape(image, [1, fine_size, fine_size, c])
-        logits = model.predict(image, batch_size=1, verbose=1)
-        out = tf.nn.top_k(logits, k=5)
-        print out
-
-    # sess.run(init)
-    # print "Loaded model"
-
-    # images = loader_test.get_test_images()
-    # paths = loader_test.get_file_list()
-
-    # # processess image by image
-    # im = 0
-    # with open('./eval.txt', 'w') as f:
-    #     for image, filename in zip(images, paths):
-    #         image = np.reshape(image, [1, fine_size, fine_size, c])
-    #         out = sess.run([top_k], feed_dict={x: image, keep_dropout: 1., train_phase: False})
-    #         import pdb; pdb.set_trace()
-    #         print out
-    #         preds = ""
-    #         for prediction in out[0][1][0]:
-    #             preds += str(prediction) + " "
-    #         preds = preds[:-1]
-    #         f.write(filename + " " + preds + "\n")
-    #         im +=1
-    #         if im % 250 == 0:
-    #             print "TESTED", im, "IMAGES"
+        logits = model.predict(image, batch_size=1, verbose=0)
+        top_values, top_indices = K.get_session().run(tf.nn.top_k(logits, k=5))
+        preds = ""
+        for prediction in top_indices[0]:
+            preds += str(prediction) + " "
+        preds = preds[:-1]
+        f.write(filename + " " + preds + "\n")
+        im +=1
+        if im % 250 == 0:
+            print "TESTED", im, "IMAGES"
 
 print "FINISHED EVALUATING TEST SET"
-
