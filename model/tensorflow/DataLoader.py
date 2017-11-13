@@ -174,3 +174,54 @@ class DataLoaderTestDisk(object):
 
     def size(self):
         return self.num
+
+# Loading test data from H5 with no labels
+class DataLoaderTestH5(object):
+    def __init__(self, **kwargs):
+        self.load_size = int(kwargs['load_size'])
+        self.fine_size = int(kwargs['fine_size'])
+        self.data_mean = np.array(kwargs['data_mean'])
+        self.randomize = kwargs['randomize']
+
+        # read data info from lists
+        f = h5py.File(kwargs['data_h5'], "r")
+        self.im_set = np.array(f['images'])
+
+        self.num = self.im_set.shape[0]
+
+        assert self.im_set.shape[1]==self.load_size, 'Image size error!'
+        assert self.im_set.shape[2]==self.load_size, 'Image size error!'
+        print('# Test images found:', self.num)
+
+        self.shuffle()
+
+    def next_batch(self):
+        images_batch = np.zeros((self.num, self.fine_size, self.fine_size, 3)) 
+        for i in range(self.num):
+            image = self.im_set[i]
+            image = image.astype(np.float32)/255. - self.data_mean
+            if self.randomize:
+                flip = np.random.random_integers(0, 1)
+                if flip>0:
+                    image = image[:,::-1,:]
+                offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
+                offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
+            else:
+                offset_h = (self.load_size-self.fine_size)//2
+                offset_w = (self.load_size-self.fine_size)//2
+
+            images_batch[i, ...] = image[offset_h:offset_h+self.fine_size, offset_w:offset_w+self.fine_size, :]
+            
+            # if self._idx == self.num:
+            #     self._idx = 0
+            #     if self.randomize:
+            #         self.shuffle()
+        
+        return images_batch
+
+    def shuffle(self):
+        perm = np.random.permutation(self.num)
+        self.im_set = self.im_set[perm] 
+
+    def size(self):
+        return self.num
