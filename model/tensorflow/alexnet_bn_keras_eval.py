@@ -48,7 +48,7 @@ with open('./eval.txt', 'w') as f:
     for image, filename in zip(images, paths):
         image = np.reshape(image, [1, fine_size, fine_size, c])
         logits = model.predict(image, batch_size=1, verbose=1)
-        out = top_k(logits)
+        out = tf.nn.top_k(logits, k=5)
         print out
 
     # sess.run(init)
