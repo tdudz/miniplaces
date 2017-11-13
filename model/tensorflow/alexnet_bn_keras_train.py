@@ -2,6 +2,7 @@ import datetime
 import argparse
 import tensorflow as tf
 from keras import backend as K
+from keras.callbacks import ModelCheckpoint
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 from alexnet import alexnet_keras
@@ -68,9 +69,10 @@ with tf.device('/cpu:0'):
 
 model = multi_gpu_model(model, gpus=gpus)
 
-opt = Adam(lr=learning_rate)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy])
+checkpointer = ModelCheckpoint(filepath='/data/keras_saved/weights.{epoch:02d}-{val_loss:.2f}.hdf5', verbose=1, save_weights_only=True)
 
+opt = Adam(lr=learning_rate)
+model.compile(loss='sparse_categorical_crossentropy', optimizer=opt, metrics=[sparse_top_5_categorical_accuracy, sparse_top_1_categorical_accuracy], callbacks=[checkpointer])
 
 print "LOADING TEST AND VAL SET"
 images_batch, labels_batch = loader_train.next_batch(train_size)
