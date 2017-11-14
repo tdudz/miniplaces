@@ -215,3 +215,46 @@ def alexnet_bn_keras(input_shape,weights_path=None,keep_dropout=0.5):
     model.add(Dense(units=100))
 
     return model
+
+def zfnet_keras(input_shape,weights_path=None,keep_dropout=0.5):
+    model = Sequential()
+
+    model.add(Conv2D(96,(7,7),strides=(2,2),padding='same',input_shape=input_shape))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    #TODO: Not sure what this means contrast normalized across feature maps to give 96 different 55 by 55 element featuremaps
+
+
+    model.add(Conv2D(256, (5, 5), strides=(2, 2)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+    #TODO: Not sure what this means contrast normalized across feature maps to give 96 different 55 by 55 element featuremaps
+
+
+    model.add(Conv2D(384, (3, 3), strides=(1, 1)))
+    model.add(Activation('relu'))
+
+
+    model.add(Conv2D(384, (3, 3), strides=(1, 1)))
+    model.add(Activation('relu'))
+
+
+    model.add(Conv2D(256, (3, 3), strides=(1, 1)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+
+
+    model.add(Flatten())
+    model.add(Dense(units=4096))
+    model.add(Activation('relu'))
+    model.add(Dropout(keep_dropout))
+
+
+    model.add(Dense(units=4096))
+    model.add(Activation('relu'))
+    model.add(Dropout(keep_dropout))
+
+
+    model.add(Dense(units=100))
+
+    return model
