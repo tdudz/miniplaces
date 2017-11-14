@@ -3,11 +3,11 @@ import argparse
 import numpy as np
 import scipy.misc
 import os
-from alexnet import alexnet_bn, batch_norm_layer
+from models import alexnet_bn, batch_norm_layer
 from DataLoader import *
 
 # command line argument parsing
-parser = argparse.ArgumentParser(description='Alexnet Batch Normalization')
+parser = argparse.ArgumentParser(description='TensorFlow Model Evaluator')
 # parser.add_argument('--model', nargs=1, help='directory to saved weights')
 args = parser.parse_args()
 # restore_dir = args.restore

@@ -176,28 +176,23 @@ def alexnet_bn_keras(input_shape,weights_path=None,keep_dropout=0.5):
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
 
-
     model.add(Conv2D(256, (5, 5), strides=(1, 1)))
     model.add(BatchNormalization(momentum=0.9,center=True,scale=True))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
 
-
     model.add(Conv2D(384, (3, 3), strides=(1, 1)))
     model.add(BatchNormalization(momentum=0.9,center=True,scale=True))
     model.add(Activation('relu'))
-
 
     model.add(Conv2D(256, (3, 3), strides=(1, 1)))
     model.add(BatchNormalization())
     model.add(Activation('relu'))
 
-
     model.add(Conv2D(256, (3, 3), strides=(1, 1)))
     model.add(BatchNormalization(momentum=0.9,center=True,scale=True))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
-
 
     model.add(Flatten())
     model.add(Dense(units=4096))
@@ -205,56 +200,54 @@ def alexnet_bn_keras(input_shape,weights_path=None,keep_dropout=0.5):
     model.add(Activation('relu'))
     model.add(Dropout(keep_dropout))
 
-
     model.add(Dense(units=4096))
     model.add(BatchNormalization(momentum=0.9,center=True,scale=True))
     model.add(Activation('relu'))
     model.add(Dropout(keep_dropout))
-
 
     model.add(Dense(units=100))
 
     return model
 
-def zfnet_keras(input_shape,weights_path=None,keep_dropout=0.5):
-    model = Sequential()
+def VGG16(input_shape,weights_path=None,keep_dropout=0.5):
 
-    model.add(Conv2D(96,(7,7),strides=(2,2),padding='same',input_shape=input_shape))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
-    #TODO: Not sure what this means contrast normalized across feature maps to give 96 different 55 by 55 element featuremaps
+    inputs = Input(shape=input_shape)
 
+    # Block 1
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv1')(inputs)
+    x = Conv2D(64, (3, 3), activation='relu', padding='same', name='block1_conv2')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
 
-    model.add(Conv2D(256, (5, 5), strides=(2, 2)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
-    #TODO: Not sure what this means contrast normalized across feature maps to give 96 different 55 by 55 element featuremaps
+    # Block 2
+    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv1')(x)
+    x = Conv2D(128, (3, 3), activation='relu', padding='same', name='block2_conv2')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
 
+    # Block 3
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv1')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv2')(x)
+    x = Conv2D(256, (3, 3), activation='relu', padding='same', name='block3_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
 
-    model.add(Conv2D(384, (3, 3), strides=(1, 1)))
-    model.add(Activation('relu'))
+    # Block 4
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv1')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv2')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block4_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
 
+    # Block 5
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv1')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv2')(x)
+    x = Conv2D(512, (3, 3), activation='relu', padding='same', name='block5_conv3')(x)
+    x = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
 
-    model.add(Conv2D(384, (3, 3), strides=(1, 1)))
-    model.add(Activation('relu'))
+    # Classification block
+    x = Flatten(name='flatten')(x)
+    x = Dense(4096, activation='relu', name='fc1')(x)
+    x = Dense(4096, activation='relu', name='fc2')(x)
+    x = Dense(units=100, name='predictions')(x)
 
-
-    model.add(Conv2D(256, (3, 3), strides=(1, 1)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
-
-
-    model.add(Flatten())
-    model.add(Dense(units=4096))
-    model.add(Activation('relu'))
-    model.add(Dropout(keep_dropout))
-
-
-    model.add(Dense(units=4096))
-    model.add(Activation('relu'))
-    model.add(Dropout(keep_dropout))
-
-
-    model.add(Dense(units=100))
+    # Create model.
+    model = Model(inputs, x, name='vgg16')
 
     return model

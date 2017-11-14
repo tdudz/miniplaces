@@ -2,11 +2,11 @@ import os, datetime
 import argparse
 import numpy as np
 import tensorflow as tf
-from alexnet import alexnet
+from models import alexnet
 from DataLoader import *
 
 # Command Line Argument Parsing
-parser = argparse.ArgumentParser(description='Alexnet')
+parser = argparse.ArgumentParser(description='TensorFlow Model Trainer')
 parser.add_argument('--restore', help='whether to restore model or not', action='store_true', default=False)
 args = parser.parse_args()
 

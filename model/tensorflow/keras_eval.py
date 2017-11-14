@@ -4,14 +4,14 @@ import numpy as np
 import scipy.misc
 import os
 from keras import backend as K
-from alexnet import alexnet_bn_keras
+from models import alexnet_bn_keras
 from DataLoader import *
 
 # command line argument parsing
 parser = argparse.ArgumentParser(description='Alexnet Batch Normalization')
 parser.add_argument('--model', nargs=1, help='directory to saved weights')
 args = parser.parse_args()
-weights = args.model
+weights = args.model[0]
 
 # Dataset Parameters
 batch_size = 256
@@ -36,7 +36,10 @@ loader_test = DataLoaderTestDisk(**data_test)
 
 # construct model
 model = alexnet_bn_keras((fine_size, fine_size, c)) 
-model.load_weights(weights)
+
+parallel_model = multi_gpu_model(model, gpus=2)
+
+parallel_model.load_weights(weights)
 print "Loaded weights from file"
 
 images = loader_test.get_test_images()
@@ -54,7 +57,7 @@ with open('./eval.txt', 'w') as f:
         preds = preds[:-1]
         f.write(filename + " " + preds + "\n")
         im +=1
-        if im % 250 == 0:
+        if im % 200 == 0:
             print "TESTED", im, "IMAGES"
 
 print "FINISHED EVALUATING TEST SET"

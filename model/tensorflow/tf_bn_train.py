@@ -2,11 +2,11 @@ import os, datetime
 import numpy as np
 import tensorflow as tf
 import argparse
-from alexnet import alexnet_bn, batch_norm_layer
+from models import alexnet_bn, batch_norm_layer
 from DataLoader import *
 
 # Command Line Argument Parsing
-parser = argparse.ArgumentParser(description='Alexnet Batch Normalization')
+parser = argparse.ArgumentParser(description='TensorFlow BN Model Trainer')
 parser.add_argument('--restore', help='whether to restore model or not', action='store_true', default=False)
 args = parser.parse_args()
 

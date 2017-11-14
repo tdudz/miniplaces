@@ -33,15 +33,6 @@ def createH5(params):
         image = scipy.misc.imread(list_im[i])
         assert image.shape[2]==3, 'Channel size error!'
         image = scipy.misc.imresize(image, (params['img_resize'],params['img_resize']))
-        mu, sigma = 0, 10 #Chose spread of 10, but can be adjusted
-        factor = np.random.normal(mu,sigma)
-        if factor >0:
-            image = np.where((255 - image) < factor,255,image+factor)
-        else:
-            image = np.where((0+image)<abs(factor),0,image+factor)
-        #Increase Contrast
-        mu, sigma = 1,0.25 # Chose soread of 0.25
-        image = np.where((255-image*factor) < 0,255,(image*factor).astype('uint8'))
 
         im_set[i] = image
 
