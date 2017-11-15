@@ -109,6 +109,16 @@ class DataLoaderDisk(object):
                     image = image[:,::-1,:]
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
+                mu, sigma = 0, 10 #Chose spread of 10, but can be adjusted
+                factor = int(np.random.normal(mu,sigma))
+                if factor >0:
+                    image = np.where((255 - image) < factor,255,image+factor)
+                else:
+                    image = np.where((0+image)<abs(factor),0,image+factor)
+                #Increase Contrast
+                mu, sigma = 1,0.25 # Chose soread of 0.25
+                c_factor = np.random.normal(mu,sigma)
+                image = np.where((255-image*c_factor) < 0,255,(image*c_factor).astype('uint8'))
             else:
                 offset_h = (self.load_size-self.fine_size)//2
                 offset_w = (self.load_size-self.fine_size)//2
