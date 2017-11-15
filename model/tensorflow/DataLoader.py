@@ -119,6 +119,10 @@ class DataLoaderDisk(object):
                 mu, sigma = 1,0.25 # Chose soread of 0.25
                 c_factor = np.random.normal(mu,sigma)
                 image = np.where((255-image*c_factor) < 0,255,(image*c_factor).astype('uint8'))
+                #Adjust Gamma
+                mu, sigma = 1,0.05
+                g_factor = np.random.normal(mu,sigma)
+                image = np.where((255-image**g_factor) < 0,255,(image**g_factor).astype('uint8'))
             else:
                 offset_h = (self.load_size-self.fine_size)//2
                 offset_w = (self.load_size-self.fine_size)//2
