@@ -7,8 +7,8 @@ from DataLoader import *
 
 # Command Line Argument Parsing
 parser = argparse.ArgumentParser(description='TensorFlow Model Trainer')
-parser.add_argument('--restore', help='whether to restore model or not', action='store_true', default=False)
-args = parser.parse_args()
+# parser.add_argument('--restore', help='whether to restore model or not', action='store_true', default=False)
+# args = parser.parse_args()
 
 # Dataset Parameters
 batch_size = 200
@@ -60,8 +60,13 @@ keep_dropout = tf.placeholder(tf.float32)
 # global step
 global_step = tf.Variable(0, name='global_step', trainable=False)
 
+resnet_size = 18
+num_classes = 100
+resnet = resnet_model.imagenet_resnet_v2(resnet_size, num_classes)
+logits = resnet(x, True)
+
 # Construct model
-logits = alexnet(x, keep_dropout)
+# logits = alexnet(x, keep_dropout)
 
 # Define loss and optimizer
 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
@@ -84,7 +89,7 @@ saver = tf.train.Saver()
 with tf.Session() as sess:
     # Initialization
     if restore_model:
-        saver.restore(sess, tf.train.latest_checkpoint(path_save))
+        # saver.restore(sess, tf.train.latest_checkpoint(path_save))
         step = sess.run(global_step)
         print "Restored model from file at step", step
 
