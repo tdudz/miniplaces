@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import scipy.misc
 import os
-from models import alexnet_bn, batch_norm_layer
+from tf_models import alexnet_bn, batch_norm_layer
 from DataLoader import *
 
 # command line argument parsing

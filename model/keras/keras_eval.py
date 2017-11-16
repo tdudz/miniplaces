@@ -4,7 +4,7 @@ import numpy as np
 import scipy.misc
 import os
 from keras import backend as K
-from models import alexnet_bn_keras
+from keras_models import alexnet_bn
 from DataLoader import *
 
 # command line argument parsing

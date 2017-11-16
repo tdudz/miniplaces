@@ -5,8 +5,8 @@ from keras import backend as K
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 from keras.callbacks import ModelCheckpoint
-from models import alexnet_keras
-from models import alexnet_bn_keras
+from keras_models import alexnet
+from keras_models import alexnet_bn
 from DataLoader import *
 
 # command line argument parsing
