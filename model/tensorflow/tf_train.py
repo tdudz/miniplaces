@@ -2,7 +2,7 @@ import os, datetime
 import numpy as np
 import tensorflow as tf
 import argparse
-from models import alexnet_bn, batch_norm_layer
+import tf_models
 from DataLoader import *
 
 # Command Line Argument Parsing
@@ -20,10 +20,10 @@ data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 # Training Parameters
 learning_rate = 0.001
 dropout = 0.5 # Dropout, probability to keep units
-training_iters = 10000
+training_iters = 2000
 step_display = 50
 step_save = 50
-path_save = '/data/saved'
+start_from = '/data/saved/alexnet'
 path_save_model = '/data/saved/alexnet'
 restore_model = args.restore
 
@@ -62,7 +62,12 @@ train_phase = tf.placeholder(tf.bool)
 global_step = tf.Variable(0, name='global_step', trainable=False)
 
 # Construct model
-logits = alexnet_bn(x, keep_dropout, train_phase)
+# logits = tf_models.alexnet_bn(x, keep_dropout, train_phase)
+
+resnet_size = 18
+num_classes = 100
+resnet = tf_models.imagenet_resnet_v2(resnet_size, num_classes)
+logits = resnet(x, True)
 
 # Define loss and optimizer
 loss = tf.reduce_mean(tf.nn.sparse_softmax_cross_entropy_with_logits(labels=y, logits=logits))
@@ -85,7 +90,7 @@ saver = tf.train.Saver()
 with tf.Session() as sess:
     # Initialization
     if restore_model:
-        saver.restore(sess, tf.train.latest_checkpoint(path_save))
+        saver.restore(sess, start_from)
         step = sess.run(global_step)
         print "Restored model from file at step", step
 

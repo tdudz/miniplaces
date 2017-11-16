@@ -7,6 +7,7 @@ from keras.utils import multi_gpu_model
 from keras.callbacks import ModelCheckpoint
 from keras_models import alexnet
 from keras_models import alexnet_bn
+from keras_models import VGG16
 from DataLoader import *
 
 # command line argument parsing
@@ -22,8 +23,7 @@ c = 3
 data_mean = np.asarray([0.45834960097,0.44674252445,0.41352266842])
 
 # Keras Parameters
-train_size = 100000
-val_size = 10000
+num_iter = 2000
 
 # Training Parameters
 learning_rate = 0.00001
@@ -74,24 +74,26 @@ def top_1_acc(y_true, y_pred, k=1):
 
 print "Initializing model on CPU"
 with tf.device('/cpu:0'):
-    # model = alexnet_bn_keras((fine_size, fine_size, c))
-    model = VGG16(input_shape=(fine_size, fine_size, c))
+    model = alexnet_bn_keras((fine_size, fine_size, c))
+    # model = VGG16(input_shape=(fine_size, fine_size, c))
 
 parallel_model = multi_gpu_model(model, gpus=gpus)
 
 opt = Adam(lr=learning_rate)
 parallel_model.compile(loss=sparse_categorical_crossentropy_with_logits, optimizer=opt, metrics=[top_5_acc, top_1_acc])
 
-checkpointer = ModelCheckpoint(filepath='/data/vgg_saved/weights.{epoch:02d}-{val_loss:.2f}.hdf5', verbose=1, save_weights_only=True)
+# checkpointer = ModelCheckpoint(filepath='/data/keras_saved/weights.{epoch:02d}-{val_loss:.2f}.hdf5', verbose=1, save_weights_only=True)
 
 opt = Adam(lr=learning_rate)
 parallel_model.compile(loss=sparse_categorical_crossentropy_with_logits, optimizer=opt, metrics=[top_5_acc, top_1_acc])
 
-print "Loading training and validation data..."
-images_batch, labels_batch = loader_train.next_batch(train_size)
-images_batch_val, labels_batch_val = loader_val.next_batch(val_size) 
-print "Fitting model..."
-parallel_model.fit(images_batch, labels_batch, batch_size=256, epochs=100, verbose=1, validation_data=(images_batch_val, labels_batch_val), callbacks=[checkpointer])
+for i in xrange(num_iter):
+    print "Iter:", i
+    images_batch, labels_batch = loader_train.next_batch(batch_size)
+    images_batch_val, labels_batch_val = loader_val.next_batch(batch_size) 
+    parallel_model.fit(images_batch, labels_batch, batch_size=batch_size, epochs=1, verbose=1, validation_data=(images_batch_val, labels_batch_val))
+    fname = 'keras-' + str(i) + '.h5'
+    model.save_weights(fname)
 
 print("Optimization Finished!")
 
