@@ -5,6 +5,7 @@ import argparse
 import tf_models
 from DataLoader import *
 from imgaug import augmenters as iaa
+from PIL import Image
 
 # Command Line Argument Parsing
 parser = argparse.ArgumentParser(description='TensorFlow Model Trainer')
@@ -102,7 +103,14 @@ with tf.Session() as sess:
 
     while step < training_iters:
         # Load a batch of training data
+        batch_size = 4
         images_batch, labels_batch = loader_train.next_batch(batch_size)
+        print type(images_batch)
+        print images_batch.shape
+        #for i in range(batch_size):
+        #    k = Image.fromarray(images_batch[i])
+        #    k.save('my.png')
+        #    k.show()
         seq = iaa.Sequential([
             iaa.Fliplr(0.5), # horizontal flips
             iaa.Flipud(0.5), #vertical flips
@@ -142,9 +150,16 @@ with tf.Session() as sess:
                     shear=(-8, 8)
                 ))
             ], random_order=True) # apply augmenters in random order
-
+        print "Applied Augmentation"
         images_batch= seq.augment_images(images_batch)
         print "Applied Augmentation"
+        for i in range(batch_size):
+
+            k = Image.fromarray(images_batch[i])
+            k.save('my.png')
+            k.show()
+        sys.exit()
+
         
         if step % step_display == 0:
             print('[%s]:' %(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")))

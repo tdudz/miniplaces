@@ -1,6 +1,10 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import tensorflow as tf
 from tensorflow.contrib.layers.python.layers import batch_norm
 import numpy as np
+
 
 def alexnet(x, keep_dropout):
     weights = {
@@ -143,9 +147,7 @@ def batch_norm_layer(x, train_phase, scope_bn):
 ################### RESNET CODE ########################
 ########################################################
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5

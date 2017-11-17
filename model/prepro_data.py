@@ -2,6 +2,8 @@ import os
 import numpy as np
 import h5py
 import scipy.misc
+from imgaug import augmenters as iaa
+from PIL import Image
 
 def createH5(params):
     # create output h5 file
@@ -28,11 +30,12 @@ def createH5(params):
 
     im_set = f_h5.create_dataset("images", (N,params['img_resize'],params['img_resize'],3), dtype='uint8') # space for resized images
     f_h5.create_dataset("labels", dtype='uint8', data=list_lab)
-
+    images = []
     for i in range(N):
         image = scipy.misc.imread(list_im[i])
         assert image.shape[2]==3, 'Channel size error!'
         image = scipy.misc.imresize(image, (params['img_resize'],params['img_resize']))
+
 
         im_set[i] = image
 

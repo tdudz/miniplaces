@@ -3,6 +3,8 @@ import numpy as np
 import scipy.misc
 import h5py
 np.random.seed(123)
+from imgaug import augmenters as iaa
+from PIL import Image
 
 # loading data from .h5
 class DataLoaderH5(object):
@@ -32,13 +34,17 @@ class DataLoaderH5(object):
         
         for i in range(batch_size):
             image = self.im_set[self._idx]
-            image = image.astype(np.float32)/255. - self.data_mean
+            print "Image #: " + str(i)
+            print image
+            #image = image.astype(np.float32)/255. - self.data_mean
             if self.randomize:
                 flip = np.random.random_integers(0, 1)
                 if flip>0:
                     image = image[:,::-1,:]
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
+                
+
             else:
                 offset_h = (self.load_size-self.fine_size)//2
                 offset_w = (self.load_size-self.fine_size)//2
