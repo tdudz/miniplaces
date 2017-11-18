@@ -6,6 +6,7 @@ import tf_models
 from DataLoader import *
 from imgaug import augmenters as iaa
 from PIL import Image
+import imgaug as ia
 
 # Command Line Argument Parsing
 parser = argparse.ArgumentParser(description='TensorFlow Model Trainer')
@@ -51,8 +52,8 @@ opt_data_val = {
 
 # loader_train = DataLoaderDisk(**opt_data_train)
 # loader_val = DataLoaderDisk(**opt_data_val)
-loader_train = DataLoaderH5(**opt_data_train)
-loader_val = DataLoaderH5(**opt_data_val)
+loader_train = DataLoaderDisk(**opt_data_train)
+loader_val = DataLoaderDisk(**opt_data_val)
 
 # tf Graph input
 x = tf.placeholder(tf.float32, [None, fine_size, fine_size, c])
@@ -103,62 +104,7 @@ with tf.Session() as sess:
 
     while step < training_iters:
         # Load a batch of training data
-        batch_size = 4
         images_batch, labels_batch = loader_train.next_batch(batch_size)
-        print type(images_batch)
-        print images_batch.shape
-        #for i in range(batch_size):
-        #    k = Image.fromarray(images_batch[i])
-        #    k.save('my.png')
-        #    k.show()
-        seq = iaa.Sequential([
-            iaa.Fliplr(0.5), # horizontal flips
-            iaa.Flipud(0.5), #vertical flips
-            iaa.Sometimes(0.5,
-                iaa.Crop(percent=(0, 0.1))
-            ), # random crops
-            # Small gaussian blur with random sigma between 0 and 0.5.
-            # But we only blur about 50% of all images.
-            iaa.Sometimes(0.5,
-                iaa.GaussianBlur(sigma=(0, 0.5))
-            ),
-            # Strengthen or weaken the contrast in each image.
-            iaa.Sometimes(0.5,
-                iaa.ContrastNormalization((0.75, 1.5))
-            ),
-            # Add gaussian noise.
-            # For 50% of all images, we sample the noise once per pixel.
-            # For the other 50% of all images, we sample the noise per pixel AND
-            # channel. This can change the color (not only brightness) of the
-            # pixels.
-            iaa.Sometimes(0.5,
-                iaa.AdditiveGaussianNoise(loc=0, scale=(0.0, 0.05*255), per_channel=0.5)
-            ),
-            # Make some images brighter and some darker.
-            # In 20% of all cases, we sample the multiplier once per channel,
-            # which can end up changing the color of the images.
-            iaa.Sometimes(0.5,
-                iaa.Multiply((0.8, 1.2), per_channel=0.2)
-            ),
-            # Apply affine transformations to each image.
-            # Scale/zoom them, translate/move them, rotate them and shear them.
-            iaa.Sometimes(0.5,
-                iaa.Affine(
-                    scale={"x": (0.8, 1.2), "y": (0.8, 1.2)},
-                    translate_percent={"x": (-0.2, 0.2), "y": (-0.2, 0.2)},
-                    rotate=(-25, 25),
-                    shear=(-8, 8)
-                ))
-            ], random_order=True) # apply augmenters in random order
-        print "Applied Augmentation"
-        images_batch= seq.augment_images(images_batch)
-        print "Applied Augmentation"
-        for i in range(batch_size):
-
-            k = Image.fromarray(images_batch[i])
-            k.save('my.png')
-            k.show()
-        sys.exit()
 
         
         if step % step_display == 0:

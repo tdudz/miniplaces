@@ -5,6 +5,7 @@ import h5py
 np.random.seed(123)
 from imgaug import augmenters as iaa
 from PIL import Image
+import cv2
 
 # loading data from .h5
 class DataLoaderH5(object):
@@ -34,10 +35,13 @@ class DataLoaderH5(object):
         
         for i in range(batch_size):
             image = self.im_set[self._idx]
-            print "Image #: " + str(i)
-            print image
-            #image = image.astype(np.float32)/255. - self.data_mean
+            image = image.astype(np.float32)/255. - self.data_mean
             if self.randomize:
+                flip = np.random.random_integers(0, 1)
+                if flip>0:
+                    angle = np.random.random_integers(0,45)
+                    M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
+                    image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
                 flip = np.random.random_integers(0, 1)
                 if flip>0:
                     image = image[:,::-1,:]
@@ -110,6 +114,11 @@ class DataLoaderDisk(object):
             image = image.astype(np.float32)/255.
             image = image - self.data_mean
             if self.randomize:
+                flip = np.random.random_integers(0, 1)
+                if flip>0:
+                    angle = np.random.random_integers(0,45)
+                    M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
+                    image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
                 flip = np.random.random_integers(0, 1)
                 if flip>0:
                     image = image[:,::-1,:]
