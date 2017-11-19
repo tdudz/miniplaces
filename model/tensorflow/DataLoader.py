@@ -50,7 +50,26 @@ class DataLoaderH5(object):
                 #Gaussian Blur
                 flip = np.random.random_integers(0,1)
                 if flip >0:
-                    image = cv2.GaussianBlur(image,(7,7),2)
+                    kernel_size = np.random.random_integers(1,5)
+                    sigma = np.random.random_integers(0,3)
+                    image = cv2.GaussianBlur(image,(kernel_size*2+1,kernel_size*2+1),sigma)
+                #Pixel Dropout
+                flip = np.random.random_integers(0,1)
+                if flip >0:
+                    pixel_numbers = np.random.random_integers(1,400)
+                    for repeat in range(pixel_numbers):
+                        x_pixel = np.random.random_integers(1,self.load_size-2)
+                        y_pixel = np.random.random_integers(1,self.load_size-2)
+                        image[x_pixel-1][y_pixel-1]= 0.0
+                        image[x_pixel-1][y_pixel]= 0.0
+                        image[x_pixel-1][y_pixel+1]= 0.0
+                        image[x_pixel][y_pixel-1]= 0.0
+                        image[x_pixel][y_pixel]= 0.0
+                        image[x_pixel][y_pixel+1]= 0.0
+                        image[x_pixel+1][y_pixel-1]= 0.0
+                        image[x_pixel+1][y_pixel]= 0.0
+                        image[x_pixel+1][y_pixel+1]= 0.0
+
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
 
@@ -135,10 +154,12 @@ class DataLoaderDisk(object):
                     image = image[:,::-1,:]
                 #Gaussian Blur
                 flip = np.random.random_integers(0,1)
-                if flip >8:
-                    image = cv2.GaussianBlur(image,(7,7),2)
+                if flip >0:
+                    kernel_size = np.random.random_integers(1,5)
+                    sigma = np.random.random_integers(0,3)
+                    image = cv2.GaussianBlur(image,(kernel_size*2+1,kernel_size*2+1),sigma)
                 #Pixel Dropout
-                flip = np.random.random_integers(1,2)
+                flip = np.random.random_integers(0,1)
                 if flip >0:
                     pixel_numbers = np.random.random_integers(1,400)
                     for repeat in range(pixel_numbers):
@@ -153,6 +174,7 @@ class DataLoaderDisk(object):
                         image[x_pixel+1][y_pixel-1]= 0.0
                         image[x_pixel+1][y_pixel]= 0.0
                         image[x_pixel+1][y_pixel+1]= 0.0
+
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
                 
