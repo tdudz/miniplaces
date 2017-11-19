@@ -104,7 +104,15 @@ with tf.Session() as sess:
 
     while step < training_iters:
         # Load a batch of training data
+        # batch_size = 5
         images_batch, labels_batch = loader_train.next_batch(batch_size)
+        # images_batch = images_batch.astype('uint8')
+        # for k in range(batch_size):
+        #     kelly = Image.fromarray(images_batch[k])
+        #     kelly.save('my.png')
+        #     kelly.show()
+        # sys.exit()
+
 
         
         if step % step_display == 0:

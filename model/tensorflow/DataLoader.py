@@ -37,16 +37,25 @@ class DataLoaderH5(object):
             image = self.im_set[self._idx]
             image = image.astype(np.float32)/255. - self.data_mean
             if self.randomize:
+                # Rotation
                 flip = np.random.random_integers(0, 1)
                 if flip>0:
                     angle = np.random.random_integers(0,45)
                     M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
                     image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
                 flip = np.random.random_integers(0, 1)
+                # Flip Left Right
                 if flip>0:
                     image = image[:,::-1,:]
+                #Gaussian Blur
+                flip = np.random.random_integers(0,1)
+                if flip >0:
+                    image = cv2.GaussianBlur(image,(7,7),2)
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
+
+
+
                 
 
             else:
@@ -114,16 +123,40 @@ class DataLoaderDisk(object):
             image = image.astype(np.float32)/255.
             image = image - self.data_mean
             if self.randomize:
+                # Rotation
                 flip = np.random.random_integers(0, 1)
-                if flip>0:
+                if flip>8:
                     angle = np.random.random_integers(0,45)
                     M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
                     image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
+                #Flip Left Right
                 flip = np.random.random_integers(0, 1)
-                if flip>0:
+                if flip>8:
                     image = image[:,::-1,:]
+                #Gaussian Blur
+                flip = np.random.random_integers(0,1)
+                if flip >8:
+                    image = cv2.GaussianBlur(image,(7,7),2)
+                #Pixel Dropout
+                flip = np.random.random_integers(1,2)
+                if flip >0:
+                    pixel_numbers = np.random.random_integers(1,400)
+                    for repeat in range(pixel_numbers):
+                        x_pixel = np.random.random_integers(1,self.load_size-2)
+                        y_pixel = np.random.random_integers(1,self.load_size-2)
+                        image[x_pixel-1][y_pixel-1]= 0.0
+                        image[x_pixel-1][y_pixel]= 0.0
+                        image[x_pixel-1][y_pixel+1]= 0.0
+                        image[x_pixel][y_pixel-1]= 0.0
+                        image[x_pixel][y_pixel]= 0.0
+                        image[x_pixel][y_pixel+1]= 0.0
+                        image[x_pixel+1][y_pixel-1]= 0.0
+                        image[x_pixel+1][y_pixel]= 0.0
+                        image[x_pixel+1][y_pixel+1]= 0.0
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
+                
+
 
             else:
                 offset_h = (self.load_size-self.fine_size)//2
