@@ -2,7 +2,7 @@ import os
 import numpy as np
 import scipy.misc
 import h5py
-np.random.seed(123)
+#np.random.seed(123)
 from imgaug import augmenters as iaa
 from PIL import Image
 import cv2
@@ -56,19 +56,31 @@ class DataLoaderH5(object):
                 #Pixel Dropout
                 flip = np.random.random_integers(0,1)
                 if flip >0:
-                    pixel_numbers = np.random.random_integers(1,400)
+                    pixel_numbers = np.random.random_integers(100,200)
                     for repeat in range(pixel_numbers):
-                        x_pixel = np.random.random_integers(1,self.load_size-2)
-                        y_pixel = np.random.random_integers(1,self.load_size-2)
-                        image[x_pixel-1][y_pixel-1]= 0.0
-                        image[x_pixel-1][y_pixel]= 0.0
-                        image[x_pixel-1][y_pixel+1]= 0.0
-                        image[x_pixel][y_pixel-1]= 0.0
-                        image[x_pixel][y_pixel]= 0.0
-                        image[x_pixel][y_pixel+1]= 0.0
-                        image[x_pixel+1][y_pixel-1]= 0.0
-                        image[x_pixel+1][y_pixel]= 0.0
-                        image[x_pixel+1][y_pixel+1]= 0.0
+                        x_pixel = np.random.random_integers(4,self.load_size-4)
+                        y_pixel = np.random.random_integers(4,self.load_size-4)
+                        half_kernel_size = np.random.random_integers(1,3)
+                        kernel_size = half_kernel_size*2+1
+                        for j in range(kernel_size):
+                            for k in range(kernel_size):
+                                image[x_pixel-half_kernel_size+j][y_pixel-half_kernel_size+k] = 0.0
+                #Gaussian Noise
+                flip = np.random.random_integers(0,1)
+                if flip >0:
+                    sigma = 0.5
+                    gaussian_noise = np.random.normal(0,sigma,np.shape(image))
+                    image = image + gaussian_noise
+                #Color Shift
+                flip = np.random.random_integers(0,1)
+                if flip > 0:
+                    color_shift = np.zeros(np.shape(image))
+                    for k in range(3):
+                        change = np.random.normal(0,0.1)
+                        color_shift[:,:,k] = np.full_like(color_shift[:,:,k],change)
+                    image = image+color_shift
+
+
 
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
@@ -161,19 +173,29 @@ class DataLoaderDisk(object):
                 #Pixel Dropout
                 flip = np.random.random_integers(0,1)
                 if flip >0:
-                    pixel_numbers = np.random.random_integers(1,400)
+                    pixel_numbers = np.random.random_integers(100,200)
                     for repeat in range(pixel_numbers):
-                        x_pixel = np.random.random_integers(1,self.load_size-2)
-                        y_pixel = np.random.random_integers(1,self.load_size-2)
-                        image[x_pixel-1][y_pixel-1]= 0.0
-                        image[x_pixel-1][y_pixel]= 0.0
-                        image[x_pixel-1][y_pixel+1]= 0.0
-                        image[x_pixel][y_pixel-1]= 0.0
-                        image[x_pixel][y_pixel]= 0.0
-                        image[x_pixel][y_pixel+1]= 0.0
-                        image[x_pixel+1][y_pixel-1]= 0.0
-                        image[x_pixel+1][y_pixel]= 0.0
-                        image[x_pixel+1][y_pixel+1]= 0.0
+                        x_pixel = np.random.random_integers(4,self.load_size-4)
+                        y_pixel = np.random.random_integers(4,self.load_size-4)
+                        half_kernel_size = np.random.random_integers(1,3)
+                        kernel_size = half_kernel_size*2+1
+                        for j in range(kernel_size):
+                            for k in range(kernel_size):
+                                image[x_pixel-half_kernel_size+j][y_pixel-half_kernel_size+k] = 0.0
+                #Gaussian Noise
+                flip = np.random.random_integers(0,1)
+                if flip >0:
+                    sigma = 0.5
+                    gaussian_noise = np.random.normal(0,sigma,np.shape(image))
+                    image = image + gaussian_noise
+                #Color Shift
+                flip = np.random.random_integers(0,1)
+                if flip > 0:
+                    color_shift = np.zeros(np.shape(image))
+                    for k in range(3):
+                        change = np.random.normal(0,0.1)
+                        color_shift[:,:,k] = np.full_like(color_shift[:,:,k],change)
+                    image = image+color_shift
 
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
