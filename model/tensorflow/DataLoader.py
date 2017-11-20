@@ -35,7 +35,7 @@ class DataLoaderH5(object):
         
         for i in range(batch_size):
             image = self.im_set[self._idx]
-            image = image.astype(np.float32)/255. - self.data_mean
+
             if self.randomize:
                 # Rotation
                 flip = np.random.random_integers(0, 1)
@@ -43,8 +43,8 @@ class DataLoaderH5(object):
                     angle = np.random.random_integers(0,45)
                     M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
                     image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
+                #Flip Left Right
                 flip = np.random.random_integers(0, 1)
-                # Flip Left Right
                 if flip>0:
                     image = image[:,::-1,:]
                 #Gaussian Blur
@@ -65,6 +65,16 @@ class DataLoaderH5(object):
                         for j in range(kernel_size):
                             for k in range(kernel_size):
                                 image[x_pixel-half_kernel_size+j][y_pixel-half_kernel_size+k] = 0.0
+                #Gamma Correction
+                flip = np.random.random_integers(0,1)
+                if flip >0:
+                    gamma = np.random.normal(1,0.5)
+                    if gamma <= 0:
+                        gamma = 0.1
+                    invGamma = 1.0/gamma
+                    print gamma
+                    table = np.array([((j/255.0)**invGamma)*255 for j in np.arange(0,256)]).astype('uint8')
+                    image =  cv2.LUT(image,table)
                 #Gaussian Noise
                 flip = np.random.random_integers(0,1)
                 if flip >0:
@@ -76,7 +86,7 @@ class DataLoaderH5(object):
                 if flip > 0:
                     color_shift = np.zeros(np.shape(image))
                     for k in range(3):
-                        change = np.random.normal(0,0.1)
+                        change = np.random.normal(-1,1)
                         color_shift[:,:,k] = np.full_like(color_shift[:,:,k],change)
                     image = image+color_shift
 
@@ -92,6 +102,8 @@ class DataLoaderH5(object):
             else:
                 offset_h = (self.load_size-self.fine_size)//2
                 offset_w = (self.load_size-self.fine_size)//2
+
+            image = image.astype(np.float32)/255. - self.data_mean
 
             images_batch[i, ...] = image[offset_h:offset_h+self.fine_size, offset_w:offset_w+self.fine_size, :]
             labels_batch[i, ...] = self.lab_set[self._idx]
@@ -151,18 +163,18 @@ class DataLoaderDisk(object):
         for i in range(batch_size):
             image = scipy.misc.imread(self.list_im[self._idx])
             image = scipy.misc.imresize(image, (self.load_size, self.load_size))
-            image = image.astype(np.float32)/255.
-            image = image - self.data_mean
+            #image = image.astype(np.float32)/255.
+            #image = image - self.data_mean
             if self.randomize:
                 # Rotation
                 flip = np.random.random_integers(0, 1)
-                if flip>8:
+                if flip>0:
                     angle = np.random.random_integers(0,45)
                     M = cv2.getRotationMatrix2D((self.load_size/2,self.load_size/2),angle,1)
                     image = cv2.warpAffine(image,M,(self.load_size,self.load_size))
                 #Flip Left Right
                 flip = np.random.random_integers(0, 1)
-                if flip>8:
+                if flip>0:
                     image = image[:,::-1,:]
                 #Gaussian Blur
                 flip = np.random.random_integers(0,1)
@@ -182,6 +194,16 @@ class DataLoaderDisk(object):
                         for j in range(kernel_size):
                             for k in range(kernel_size):
                                 image[x_pixel-half_kernel_size+j][y_pixel-half_kernel_size+k] = 0.0
+                #Gamma Correction
+                flip = np.random.random_integers(0,1)
+                if flip >0:
+                    gamma = np.random.normal(1,0.5)
+                    if gamma <= 0:
+                        gamma = 0.1
+                    invGamma = 1.0/gamma
+                    print gamma
+                    table = np.array([((j/255.0)**invGamma)*255 for j in np.arange(0,256)]).astype('uint8')
+                    image =  cv2.LUT(image,table)
                 #Gaussian Noise
                 flip = np.random.random_integers(0,1)
                 if flip >0:
@@ -193,9 +215,11 @@ class DataLoaderDisk(object):
                 if flip > 0:
                     color_shift = np.zeros(np.shape(image))
                     for k in range(3):
-                        change = np.random.normal(0,0.1)
+                        change = np.random.normal(-1,1)
                         color_shift[:,:,k] = np.full_like(color_shift[:,:,k],change)
                     image = image+color_shift
+
+
 
                 offset_h = np.random.random_integers(0, self.load_size-self.fine_size)
                 offset_w = np.random.random_integers(0, self.load_size-self.fine_size)
@@ -205,6 +229,10 @@ class DataLoaderDisk(object):
             else:
                 offset_h = (self.load_size-self.fine_size)//2
                 offset_w = (self.load_size-self.fine_size)//2
+
+
+            image = image.astype(np.float32)/255.
+            image = image - self.data_mean
 
             images_batch[i, ...] =  image[offset_h:offset_h+self.fine_size, offset_w:offset_w+self.fine_size, :]
             labels_batch[i, ...] = self.list_lab[self._idx]
